@@ -1,0 +1,59 @@
+#Look at structure of the data
+str(songs)
+summary(songs)
+
+#How many observations (songs) are from the year 2010?
+nrow(subset(songs, year==2010))
+
+#Which of the songs by Michael Jackson made it to the Top 10? 
+subset(songs,artistname=='Michael Jackson' & Top10 ==1)
+
+#The variable corresponding to the estimated time signature (timesignature) is discrete, meaning that it only takes integer values (0, 1, 2, 3, . . . ).
+#What are the values of this variable that occur in the dataset? Which timesignature value is the most frequent among songs in our dataset?
+table(songs$timesignature)
+
+#Out of all of the songs in our dataset, Which song has highest tempo?
+which.max(songs$tempo)
+songs$songtitle[6206]
+
+#We wish to predict whether or not a song will make it to the Top 10. To do this, first use the subset function to split the data into a training set "SongsTrain" consisting of all the observations up to and including 2009 song releases, and a testing set "SongsTest", 
+#consisting of the 2010 song releases.
+SongsTrain = subset(songs, year <2010)
+SongsTest = subset(songs, year >2009)
+nrow(SongsTrain)
+
+# We want to exclude some of the variables in our dataset from being used as independent variables ("year", "songtitle", "artistname", "songID", and "artistID").
+nonvar = c("year", "songtitle", "artistname","songID", "artistID")
+SongsTrain = SongsTrain[, !(names(SongsTrain) %in% nonvar)]
+SongsTest = SongsTest[, !(names(SongsTest) %in% nonvar)]
+
+#Building a logistic regression model to predict Top10 using all of the other variables as the independent variables.
+mod1 = glm(Top10 ~ ., data = SongsTrain, family = binomial)
+summary(mod1)
+
+#Lets check if there is any correlation between 'loudness' and 'energy'
+cor(SongsTrain$loudness, SongsTrain$energy)
+
+#Create Model 2, which is Model 1 without the independent variable "loudness". 
+mod2 = glm(Top10 ~ .-loudness, data = SongsTrain, family = binomial)
+summary(mod2)
+
+#Create Model 3, which is Model 1 without the independent variable "energy". 
+mod3 = glm(Top10 ~ . -energy, data = SongsTrain, family = binomial)
+summary(mod3)
+
+#Make predictions on the test set using Model 3. What is the accuracy of Model 3 on the test set, using a threshold of 0.45?
+pred1 = predict(mod3, type = "response", newdata = SongsTest)
+table(SongsTest$Top10, pred1>=0.45) #88%
+
+#Baseline accuracy
+table(SongsTest$Top10) #84%
+
+#Sensitivity = 32.2%
+#Specifiity = 98.4%
+
+#CONCLUSION
+#Model 3 has a very high specificity, meaning that it favors specificity over sensitivity. While Model 3 only captures less than half of the Top 10 songs, 
+#it still can offer a competitive edge, since it is very conservative in its predictions.
+
+#An Analytics Edge Assignment
