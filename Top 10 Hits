@@ -1,0 +1,30 @@
+str(songs)
+nrow(subset(songs, year==2010))
+summary(songs)
+subset(songs,artistname=='Michael Jackson' & Top10 ==1)
+table(songs$timesignature)
+which.max(songs$tempo)
+songs$songtitle[6206]
+
+SongsTrain = subset(songs, year <2010)
+SongsTest = subset(songs, year >2009)
+nrow(SongsTrain)
+
+nonvar = c("year", "songtitle", "artistname","songID", "artistID")
+SongsTrain = SongsTrain[, !(names(SongsTrain) %in% nonvar)]
+SongsTest = SongsTest[, !(names(SongsTest) %in% nonvar)]
+
+mod1 = glm(Top10 ~ ., data = SongsTrain, family = binomial)
+summary(mod1)
+cor(SongsTrain$loudness, SongsTrain$energy)
+
+
+mod2 = glm(Top10 ~ .-loudness, data = SongsTrain, family = binomial)
+summary(mod2)
+
+mod3 = glm(Top10 ~ . -energy, data = SongsTrain, family = binomial)
+summary(mod3)
+
+pred1 = predict(mod3, type = "response", newdata = SongsTest)
+table(SongsTest$Top10, pred1>=0.45)
+table(SongsTest$Top10)
